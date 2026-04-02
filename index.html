@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Postur AI — Correção de Postura Inteligente</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --accent: #0071E3;
+    --accent-glow: rgba(0, 113, 227, 0.15);
+    --black: #1d1d1f;
+    --gray: #86868b;
+    --light-gray: #f5f5f7;
+    --white: #ffffff;
+    --green: #30D158;
+    --red: #FF453A;
+    --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+
+  html { scroll-behavior: smooth; font-size: 16px; }
+
+  body {
+    font-family: var(--font);
+    background: var(--white);
+    color: var(--black);
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* ===== NAVBAR ===== */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+    background: rgba(255,255,255,0.72);
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    border-bottom: 1px solid rgba(0,0,0,0.04);
+    transition: all 0.3s ease;
+  }
+  nav.scrolled { background: rgba(255,255,255,0.92); box-shadow: 0 1px 12px rgba(0,0,0,0.06); }
+  .nav-inner {
+    max-width: 1200px; margin: 0 auto;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 2rem; height: 52px;
+  }
+  .nav-logo {
+    font-weight: 700; font-size: 1.25rem; color: var(--black);
+    display: flex; align-items: center; gap: 0.5rem; text-decoration: none;
+  }
+  .nav-logo span { color: var(--accent); }
+  .nav-links { display: flex; gap: 2rem; list-style: none; }
+  .nav-links a {
+    text-decoration: none; color: var(--gray); font-size: 0.82rem;
+    font-weight: 500; transition: color 0.2s; letter-spacing: -0.01em;
+  }
+  .nav-links a:hover { color: var(--black); }
+  .nav-cta {
+    background: var(--accent); color: white !important; padding: 0.45rem 1.1rem;
+    border-radius: 980px; font-size: 0.82rem !important; font-weight: 600 !important;
+    transition: all 0.2s !important; text-decoration: none;
+  }
+  .nav-cta:hover { background: #0077ED; transform: scale(1.04); }
+  .hamburger { display: none; background: none; border: none; font-size: 1.3rem; cursor: pointer; color: var(--black); }
+
+  /* ===== HERO ===== */
+  .hero {
+    min-height: 100vh; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; text-align: center;
+    padding: 8rem 2rem 4rem; position: relative; overflow: hidden;
+    background: radial-gradient(ellipse at 50% 0%, rgba(0,113,227,0.04) 0%, transparent 60%);
+  }
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    background: var(--light-gray); border: 1px solid rgba(0,0,0,0.06);
+    padding: 0.4rem 1rem; border-radius: 980px; font-size: 0.78rem;
+    font-weight: 500; color: var(--gray); margin-bottom: 1.5rem;
+    opacity: 0; transform: translateY(20px);
+    animation: fadeUp 0.8s 0.2s forwards;
+  }
+  .hero-badge .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); animation: pulse-dot 2s infinite; }
+
+  .hero h1 {
+    font-size: clamp(2.8rem, 7vw, 5.5rem); font-weight: 700;
+    letter-spacing: -0.04em; line-height: 1.05; max-width: 900px;
+    color: var(--black);
+    opacity: 0; transform: translateY(30px);
+    animation: fadeUp 0.8s 0.4s forwards;
+  }
+  .hero h1 .gradient-text {
+    background: linear-gradient(135deg, var(--accent), #00C6FF);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .hero p {
+    font-size: clamp(1rem, 2vw, 1.3rem); color: var(--gray);
+    max-width: 560px; margin: 1.5rem auto 2.5rem; line-height: 1.6;
+    font-weight: 400; letter-spacing: -0.01em;
+    opacity: 0; transform: translateY(30px);
+    animation: fadeUp 0.8s 0.6s forwards;
+  }
+  .hero-buttons {
+    display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center;
+    opacity: 0; transform: translateY(30px);
+    animation: fadeUp 0.8s 0.8s forwards;
+  }
+  .btn-primary {
+    background: var(--accent); color: white; border: none;
+    padding: 1rem 2.2rem; border-radius: 980px; font-size: 1rem;
+    font-weight: 600; cursor: pointer; transition: all 0.3s;
+    text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem;
+    font-family: var(--font); position: relative; overflow: hidden;
+  }
+  .btn-primary::after {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(135deg, transparent, rgba(255,255,255,0.2));
+    opacity: 0; transition: opacity 0.3s;
+  }
+  .btn-primary:hover { transform: translateY(-2px) scale(1.03); box-shadow: 0 8px 30px rgba(0,113,227,0.35); }
+  .btn-primary:hover::after { opacity: 1; }
+  .btn-secondary {
+    background: transparent; color: var(--accent); border: 1.5px solid rgba(0,113,227,0.3);
+    padding: 1rem 2.2rem; border-radius: 980px; font-size: 1rem;
+    font-weight: 600; cursor: pointer; transition: all 0.3s;
+    text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem;
+    font-family: var(--font);
+  }
+  .btn-secondary:hover { background: rgba(0,113,227,0.06); border-color: var(--accent); transform: translateY(-2px); }
+
+  /* 3D Hero Visual */
+  .hero-visual {
+    margin-top: 4rem; position: relative; width: 100%; max-width: 800px;
+    opacity: 0; transform: translateY(40px);
+    animation: fadeUp 1s 1s forwards;
+  }
+  .hero-3d-container {
+    width: 100%; aspect-ratio: 16/10; position: relative;
+    perspective: 1200px; display: flex; align-items: center; justify-content: center;
+  }
+  .hero-3d-scene {
+    width: 90%; height: 90%; position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.1s ease-out;
+  }
+  .spine-visual {
+    position: absolute; left: 50%; top: 50%;
+    transform: translate(-50%, -50%);
+    width: 200px; height: 380px;
+  }
+  .vertebra {
+    width: 60px; height: 18px; margin: 4px auto;
+    background: linear-gradient(135deg, var(--accent), #00C6FF);
+    border-radius: 12px; position: relative;
+    transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+    box-shadow: 0 2px 10px rgba(0,113,227,0.2);
+  }
+  .vertebra::after {
+    content: ''; position: absolute; inset: 2px;
+    background: rgba(255,255,255,0.3); border-radius: 10px;
+  }
+  .spine-visual.corrected .vertebra { transform: translateX(0) !important; }
+
+  .scan-line {
+    position: absolute; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    top: 0; animation: scanDown 3s infinite; opacity: 0.6;
+    box-shadow: 0 0 20px var(--accent);
+  }
+
+  .float-card {
+    position: absolute; background: rgba(255,255,255,0.95);
+    backdrop-filter: blur(20px); border-radius: 16px;
+    padding: 1rem 1.2rem; box-shadow: 0 4px 30px rgba(0,0,0,0.08);
+    border: 1px solid rgba(0,0,0,0.04); font-size: 0.8rem;
+    display: flex; align-items: center; gap: 0.6rem;
+    animation: float 6s ease-in-out infinite;
+  }
+  .float-card.card-1 { top: 10%; right: 5%; animation-delay: 0s; }
+  .float-card.card-2 { bottom: 15%; left: 5%; animation-delay: 2s; }
+  .float-card.card-3 { top: 40%; left: 0%; animation-delay: 4s; }
+  .float-card .card-icon {
+    width: 36px; height: 36px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem;
+  }
+  .card-icon.green { background: rgba(48,209,88,0.12); color: var(--green); }
+  .card-icon.blue { background: var(--accent-glow); color: var(--accent); }
+  .card-icon.red { background: rgba(255,69,58,0.12); color: var(--red); }
+  .float-card .card-label { font-weight: 600; color: var(--black); }
+  .float-card .card-value { font-weight: 400; color: var(--gray); font-size: 0.72rem; }
+
+  /* ===== SECTIONS COMMON ===== */
+  section { padding: 7rem 2rem; }
+  .section-inner { max-width: 1080px; margin: 0 auto; }
+  .section-label {
+    font-size: 0.78rem; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.12em; color: var(--accent); margin-bottom: 1rem;
+  }
+  .section-title {
+    font-size: clamp(2rem, 4.5vw, 3.2rem); font-weight: 700;
+    letter-spacing: -0.035em; line-height: 1.1; color: var(--black);
+    max-width: 700px;
+  }
+  .section-subtitle {
+    font-size: 1.1rem; color: var(--gray); margin-top: 1.2rem;
+    line-height: 1.7; max-width: 560px; font-weight: 400;
+  }
+  .reveal { opacity: 0; transform: translateY(50px); transition: all 0.8s cubic-bezier(0.23, 1, 0.32, 1); }
+  .reveal.active { opacity: 1; transform: translateY(0); }
+
+  /* ===== PROBLEM SECTION ===== */
+  .problem { background: var(--light-gray); }
+  .problem-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem; margin-top: 3.5rem;
+  }
+  .problem-card {
+    background: var(--white); border-radius: 20px; padding: 2.2rem;
+    border: 1px solid rgba(0,0,0,0.04);
+    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+    position: relative; overflow: hidden;
+  }
+  .problem-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--red), #FF6B6B); opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .problem-card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(0,0,0,0.06); }
+  .problem-card:hover::before { opacity: 1; }
+  .problem-icon {
+    width: 48px; height: 48px; border-radius: 14px;
+    background: rgba(255,69,58,0.08); color: var(--red);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.3rem; margin-bottom: 1.2rem;
+  }
+  .problem-card h3 { font-size: 1.15rem; font-weight: 700; margin-bottom: 0.6rem; letter-spacing: -0.02em; }
+  .problem-card p { font-size: 0.9rem; color: var(--gray); line-height: 1.65; }
+  .problem-stat {
+    display: inline-block; margin-top: 1rem; font-size: 2rem;
+    font-weight: 800; color: var(--red); letter-spacing: -0.03em;
+  }
+
+  /* ===== SOLUTION SECTION ===== */
+  .solution-steps { margin-top: 4rem; }
+  .step {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 4rem;
+    align-items: center; margin-bottom: 6rem;
+  }
+  .step:nth-child(even) { direction: rtl; }
+  .step:nth-child(even) > * { direction: ltr; }
+  .step-number {
+    font-size: 5rem; font-weight: 800; color: rgba(0,113,227,0.07);
+    letter-spacing: -0.04em; line-height: 1; margin-bottom: 0.5rem;
+  }
+  .step-content h3 {
+    font-size: 1.6rem; font-weight: 700; letter-spacing: -0.03em;
+    margin-bottom: 0.8rem;
+  }
+  .step-content p { font-size: 1rem; color: var(--gray); line-height: 1.7; }
+  .step-mockup {
+    background: var(--light-gray); border-radius: 20px;
+    aspect-ratio: 4/3; display: flex; align-items: center;
+    justify-content: center; position: relative; overflow: hidden;
+    border: 1px solid rgba(0,0,0,0.04);
+  }
+  .mockup-screen {
+    width: 85%; height: 80%; background: white; border-radius: 12px;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.08); position: relative;
+    overflow: hidden; display: flex; flex-direction: column;
+  }
+  .mockup-topbar {
+    height: 32px; background: var(--light-gray); display: flex;
+    align-items: center; padding: 0 12px; gap: 6px;
+    border-bottom: 1px solid rgba(0,0,0,0.04);
+  }
+  .mockup-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .mockup-dot.r { background: #FF5F57; }
+  .mockup-dot.y { background: #FFBD2E; }
+  .mockup-dot.g { background: #28CA41; }
+  .mockup-body { flex: 1; padding: 1rem; display: flex; flex-direction: column; gap: 0.6rem; }
+  .mockup-line {
+    height: 8px; border-radius: 4px; background: var(--light-gray);
+  }
+  .mockup-line.short { width: 40%; }
+  .mockup-line.medium { width: 65%; }
+  .mockup-line.long { width: 85%; }
+  .mockup-chart {
+    flex: 1; display: flex; align-items: flex-end; gap: 6px;
+    padding-top: 0.5rem;
+  }
+  .mockup-bar {
+    flex: 1; background: linear-gradient(to top, var(--accent), #00C6FF);
+    border-radius: 4px 4px 0 0; min-height: 10%;
+    animation: barGrow 2s ease-out forwards;
+  }
+  .mockup-skeleton {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 4px;
+  }
+  .skeleton-bone {
+    width: 3px; border-radius: 2px; background: var(--accent);
+    transition: all 0.5s;
+  }
+  .mockup-posture-indicator {
+    display: flex; align-items: center; gap: 0.5rem;
+    padding: 0.5rem 0.8rem; background: rgba(48,209,88,0.1);
+    border-radius: 8px; font-size: 0.7rem; font-weight: 600; color: var(--green);
+    width: fit-content;
+  }
+
+  /* ===== WHY SECTION ===== */
+  .why-section { background: var(--black); color: white; }
+  .why-section .section-label { color: rgba(255,255,255,0.4); }
+  .why-section .section-title { color: white; }
+  .why-content {
+    margin-top: 3rem; display: grid; grid-template-columns: 1fr 1fr;
+    gap: 4rem; align-items: center;
+  }
+  .why-text p {
+    font-size: 1.1rem; color: rgba(255,255,255,0.6);
+    line-height: 1.8; margin-bottom: 1.5rem;
+  }
+  .why-text p:first-child::first-letter {
+    font-size: 3.5rem; font-weight: 700; color: var(--accent);
+    float: left; margin-right: 0.5rem; line-height: 1;
+  }
+  .why-quote {
+    font-size: 1.6rem; font-weight: 600; font-style: italic;
+    color: white; border-left: 3px solid var(--accent);
+    padding-left: 1.5rem; line-height: 1.5; letter-spacing: -0.02em;
+  }
+
+  /* ===== FOUNDER SECTION ===== */
+  .founder-content {
+    display: grid; grid-template-columns: auto 1fr;
+    gap: 4rem; align-items: center; margin-top: 3rem;
+  }
+  .founder-photo {
+    width: 280px; height: 280px; border-radius: 24px;
+    background: linear-gradient(135deg, var(--light-gray), #e8e8ed);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 6rem; color: var(--gray); position: relative; overflow: hidden;
+  }
+  .founder-photo::after {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(135deg, transparent 60%, rgba(0,113,227,0.08));
+  }
+  .founder-info h3 { font-size: 1.8rem; font-weight: 700; letter-spacing: -0.03em; }
+  .founder-info .founder-role { color: var(--accent); font-weight: 600; font-size: 0.95rem; margin-top: 0.3rem; }
+  .founder-info p { color: var(--gray); line-height: 1.7; margin-top: 1rem; font-size: 1rem; }
+  .founder-credentials {
+    display: flex; gap: 2rem; margin-top: 1.5rem; flex-wrap: wrap;
+  }
+  .credential {
+    display: flex; align-items: center; gap: 0.5rem;
+    font-size: 0.85rem; color: var(--gray);
+  }
+  .credential i { color: var(--accent); }
+
+  /* ===== CTA FINAL ===== */
+  .cta-final {
+    text-align: center; padding: 8rem 2rem;
+    background: linear-gradient(180deg, var(--white) 0%, rgba(0,113,227,0.03) 100%);
+    position: relative;
+  }
+  .cta-final::before {
+    content: ''; position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 600px; height: 600px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(0,113,227,0.06) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .cta-final .section-title { margin: 0 auto 1rem; text-align: center; }
+  .cta-final .section-subtitle { margin: 0 auto 2.5rem; text-align: center; }
+  .cta-price {
+    font-size: 3.5rem; font-weight: 800; color: var(--black);
+    letter-spacing: -0.04em; margin-bottom: 0.3rem;
+  }
+  .cta-price-note { color: var(--gray); font-size: 0.9rem; margin-bottom: 2rem; }
+  .cta-features {
+    display: flex; gap: 2rem; justify-content: center;
+    margin-bottom: 3rem; flex-wrap: wrap;
+  }
+  .cta-feature {
+    display: flex; align-items: center; gap: 0.5rem;
+    font-size: 0.9rem; color: var(--gray);
+  }
+  .cta-feature i { color: var(--green); }
+  .btn-large {
+    padding: 1.2rem 3.5rem; font-size: 1.15rem;
+    background: var(--accent); color: white; border: none;
+    border-radius: 980px; font-weight: 700; cursor: pointer;
+    transition: all 0.3s; font-family: var(--font);
+    position: relative; overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0,113,227,0.3);
+  }
+  .btn-large:hover {
+    transform: translateY(-3px) scale(1.04);
+    box-shadow: 0 12px 40px rgba(0,113,227,0.45);
+  }
+  .guarantee {
+    margin-top: 1.5rem; font-size: 0.82rem; color: var(--gray);
+    display: flex; align-items: center; justify-content: center; gap: 0.4rem;
+  }
+
+  /* ===== FOOTER ===== */
+  footer {
+    padding: 3rem 2rem; border-top: 1px solid rgba(0,0,0,0.06);
+    text-align: center; color: var(--gray); font-size: 0.8rem;
+  }
+
+  /* ===== ANIMATIONS ===== */
+  @keyframes fadeUp {
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(1.5); }
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-12px); }
+  }
+  @keyframes scanDown {
+    0% { top: 0; opacity: 0; }
+    10% { opacity: 0.6; }
+    90% { opacity: 0.6; }
+    100% { top: 100%; opacity: 0; }
+  }
+  @keyframes barGrow {
+    from { height: 10%; }
+  }
+
+  /* ===== MOBILE ===== */
+  @media (max-width: 768px) {
+    .nav-links { display: none; }
+    .hamburger { display: block; }
+    .nav-links.open {
+      display: flex; flex-direction: column;
+      position: absolute; top: 52px; left: 0; right: 0;
+      background: rgba(255,255,255,0.98); backdrop-filter: blur(20px);
+      padding: 1.5rem 2rem; gap: 1.2rem;
+      border-bottom: 1px solid rgba(0,0,0,0.06);
+    }
+    .hero { padding: 7rem 1.5rem 3rem; min-height: auto; }
+    .problem-grid { grid-template-columns: 1fr; }
+    .step { grid-template-columns: 1fr; gap: 2rem; }
+    .step:nth-child(even) { direction: ltr; }
+    .why-content { grid-template-columns: 1fr; }
+    .founder-content { grid-template-columns: 1fr; justify-items: center; text-align: center; }
+    .founder-credentials { justify-content: center; }
+    .float-card.card-3 { display: none; }
+    .float-card { font-size: 0.7rem; padding: 0.7rem 0.9rem; }
+    .cta-features { flex-direction: column; align-items: center; }
+  }
+
+  /* Smooth scroll offset */
+  section[id] { scroll-margin-top: 60px; }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar { width: 8px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.25); }
+</style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav id="navbar">
+  <div class="nav-inner">
+    <a href="#" class="nav-logo"><i class="fas fa-spine" style="color:var(--accent)"></i> Postur<span>AI</span></a>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="#problema">O Problema</a></li>
+      <li><a href="#solucao">Solução</a></li>
+      <li><a href="#historia">História</a></li>
+      <li><a href="#fundador">Fundador</a></li>
+      <li><a href="#garantir" class="nav-cta">Garantir Agora</a></li>
+    </ul>
+    <button class="hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="hero">
+  <div class="hero-badge"><span class="dot"></span> Tecnologia de ponta em correção postural</div>
+  <h1>Sua postura perfeita.<br><span class="gradient-text">Guiada por IA.</span></h1>
+  <p>O Postur AI analisa sua postura em tempo real e te guia para uma correção inteligente — sem equipamentos, sem complicação.</p>
+  <div class="hero-buttons">
+    <a href="#garantir" class="btn-primary"><i class="fas fa-bolt"></i> Garantir agora</a>
+    <a href="#solucao" class="btn-secondary"><i class="fas fa-play"></i> Como funciona</a>
+  </div>
+
+  <div class="hero-visual">
+    <div class="hero-3d-container">
+      <div class="hero-3d-scene" id="hero3d">
+        <div class="spine-visual" id="spineVisual">
+          <div class="scan-line"></div>
+          <!-- Vertebrae generated by JS -->
+        </div>
+        <div class="float-card card-1">
+          <div class="card-icon green"><i class="fas fa-check"></i></div>
+          <div><div class="card-label">Postura Corrigida</div><div class="card-value">Alinhamento 94%</div></div>
+        </div>
+        <div class="float-card card-2">
+          <div class="card-icon blue"><i class="fas fa-brain"></i></div>
+          <div><div class="card-label">IA Analisando</div><div class="card-value">Tempo real</div></div>
+        </div>
+        <div class="float-card card-3">
+          <div class="card-icon red"><i class="fas fa-exclamation-triangle"></i></div>
+          <div><div class="card-label">Desvio Detectado</div><div class="card-value">Cervical -12°</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROBLEM -->
+<section class="problem" id="problema">
+  <div class="section-inner">
+    <div class="reveal">
+      <div class="section-label">O Problema</div>
+      <h2 class="section-title">Postura ruim não é só estética.<br>É um problema de saúde.</h2>
+      <p class="section-subtitle">Milhões de pessoas sofrem diariamente com dores que poderiam ser evitadas com uma simples correção postural.</p>
+    </div>
+    <div class="problem-grid">
+      <div class="problem-card reveal">
+        <div class="problem-icon"><i class="fas fa-user-injured"></i></div>
+        <h3>Dor Crônica</h3>
+        <p>80% das dores nas costas estão diretamente ligadas à má postura no dia a dia.</p>
+        <span class="problem-stat">80%</span>
+      </div>
+      <div class="problem-card reveal">
+        <div class="problem-icon"><i class="fas fa-laptop"></i></div>
+        <h3>Home Office</h3>
+        <p>Horas sentado em frente ao computador sem ergonomia adequada destroem sua coluna silenciosamente.</p>
+        <span class="problem-stat">8h/dia</span>
+      </div>
+      <div class="problem-card reveal">
+        <div class="problem-icon"><i class="fas fa-money-bill-wave"></i></div>
+        <h3>Custo Invisível</h3>
+        <p>Brasileiros gastam em média R$ 3.200/ano com tratamentos de dores posturais evitáveis.</p>
+        <span class="problem-stat">R$ 3.2k</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SOLUTION -->
+<section id="solucao">
+  <div class="section-inner">
+    <div class="reveal">
+      <div class="section-label">A Solução</div>
+      <h2 class="section-title">Postur AI: seu fisioterapeuta digital, 24/7.</h2>
+      <p class="section-subtitle">Três passos simples para transformar sua postura — e sua qualidade de vida.</p>
+    </div>
+    <div class="solution-steps">
+      <!-- Step 1 -->
+      <div class="step reveal">
+        <div class="step-content">
+          <div class="step-number">01</div>
+          <h3>Ative sua câmera</h3>
+          <p>Basta ligar a webcam ou câmera do celular. Nossa IA mapeia 33 pontos do seu corpo em tempo real usando visão computacional avançada — sem sensores, sem wearables.</p>
+        </div>
+        <div class="step-mockup">
+          <div class="mockup-screen">
+            <div class="mockup-topbar">
+              <span class="mockup-dot r"></span>
+              <span class="mockup-dot y"></span>
+              <span class="mockup-dot g"></span>
+            </div>
+            <div class="mockup-body">
+              <div class="mockup-posture-indicator"><i class="fas fa-video"></i> Câmera ativa</div>
+              <div class="mockup-skeleton">
+                <div class="skeleton-bone" style="width:3px;height:8px;background:var(--accent)"></div>
+                <div style="width:40px;height:3px;background:var(--accent);border-radius:2px"></div>
+                <div class="skeleton-bone" style="width:3px;height:30px;background:var(--accent)"></div>
+                <div style="width:30px;height:3px;background:var(--accent);border-radius:2px"></div>
+                <div class="skeleton-bone" style="width:3px;height:25px;background:var(--accent)"></div>
+                <div style="display:flex;gap:20px">
+                  <div class="skeleton-bone" style="width:3px;height:30px;background:var(--accent)"></div>
+                  <div class="skeleton-bone" style="width:3px;height:30px;background:var(--accent)"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Step 2 -->
+      <div class="step reveal">
+        <div class="step-content">
+          <div class="step-number">02</div>
+          <h3>Análise inteligente</h3>
+          <p>O algoritmo identifica desvios posturais, calcula ângulos da coluna e compara com padrões ideais. Tudo em milissegundos, com precisão clínica.</p>
+        </div>
+        <div class="step-mockup">
+          <div class="mockup-screen">
+            <div class="mockup-topbar">
+              <span class="mockup-dot r"></span>
+              <span class="mockup-dot y"></span>
+              <span class="mockup-dot g"></span>
+            </div>
+            <div class="mockup-body">
+              <div class="mockup-posture-indicator"><i class="fas fa-chart-line"></i> Analisando postura</div>
+              <div class="mockup-chart">
+                <div class="mockup-bar" style="height:45%"></div>
+                <div class="mockup-bar" style="height:60%"></div>
+                <div class="mockup-bar" style="height:35%"></div>
+                <div class="mockup-bar" style="height:80%"></div>
+                <div class="mockup-bar" style="height:55%"></div>
+                <div class="mockup-bar" style="height:90%"></div>
+                <div class="mockup-bar" style="height:70%"></div>
+                <div class="mockup-bar" style="height:95%"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Step 3 -->
+      <div class="step reveal">
+        <div class="step-content">
+          <div class="step-number">03</div>
+          <h3>Correção guiada</h3>
+          <p>Receba feedback visual e sonoro em tempo real. O Postur AI te guia para a posição ideal e acompanha sua evolução ao longo das semanas.</p>
+        </div>
+        <div class="step-mockup">
+          <div class="mockup-screen">
+            <div class="mockup-topbar">
+              <span class="mockup-dot r"></span>
+              <span class="mockup-dot y"></span>
+              <span class="mockup-dot g"></span>
+            </div>
+            <div class="mockup-body">
+              <div class="mockup-posture-indicator" style="background:rgba(48,209,88,0.15)"><i class="fas fa-check-circle"></i> Postura corrigida!</div>
+              <div class="mockup-line long"></div>
+              <div class="mockup-line medium"></div>
+              <div class="mockup-line short"></div>
+              <div style="flex:1;display:flex;align-items:center;justify-content:center">
+                <div style="text-align:center">
+                  <div style="font-size:2.5rem;font-weight:800;color:var(--green)">94%</div>
+                  <div style="font-size:0.7rem;color:var(--gray);margin-top:4px">Score de Postura</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- WHY I CREATED THIS -->
+<section class="why-section" id="historia">
+  <div class="section-inner">
+    <div class="reveal">
+      <div class="section-label">Por que criei isso</div>
+      <h2 class="section-title">Uma dor que todos vão passar em um futuro breve</h2>
+    </div>
+    <div class="why-content reveal">
+      <div class="why-text">
+        <p>Com tão pouco tempo de trabalho e ainda muito jovem, aos 19 anos, resolvi criar isso. Sabia que era algo que impactaria diretamente meu futuro, algo que precisava começar agora. Depois de trabalhar e conviver com pessoas mais velhas de diferentes setores — financeiro, gestão, vendas, TI, entre outros — percebi que o trabalho consome muito mais do que apenas nosso tempo.</p>
+<p>Foi nesse convívio que entendi: o problema não era apenas a carga de trabalho — era a falta de consciência sobre como lidamos com ela no dia a dia. Ninguém fala sobre os efeitos disso no longo prazo. Nenhuma ferramenta, nenhum alerta, nada.</p>
+<p>Então decidi criar algo que eu mesmo gostaria de ter desde o início. Uma inteligência artificial que observa, analisa e avisa: "Ei, preste atenção nisso agora — antes que vire um problema maior."</p>
+      </div>
+      <div>
+        <blockquote class="why-quote">
+          "Eu criei o Postur AI para que ninguém precise passar a sensação de estar envelhecendo antes do tempo."
+        </blockquote>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOUNDER -->
+<section id="fundador">
+  <div class="section-inner">
+    <div class="reveal">
+      <div class="section-label">Quem sou eu</div>
+      <h2 class="section-title">O criador por trás do Postur AI.</h2>
+    </div>
+    <div class="founder-content reveal">
+      <div class="founder-photo">
+  <img src="minha Foto.png" alt="Guilherme Ramos" style="width:100%;height:100%;object-fit:cover;border-radius:24px;">
+</div>
+      <div class="founder-info">
+        <h3>Guilherme Ramos</h3>
+        <div class="founder-role">Fundador & CEO — Postur AI</div>
+        <p>Estudante de Engenharia da Computação, morador do interior de São Paulo e técnico em Desenvolvimento de Sistemas. Mesmo no início da carreira, vem se dedicando ao estudo de inteligência artificial e visão computacional, com foco na criação de soluções acessíveis para prevenção de dores na coluna.</p>
+        <div class="founder-credentials">
+          <div class="credential"><i class="fas fa-graduation-cap"></i> 3º semestre Engenharia da computação — UNISAL</div>
+          <div class="credential"><i class="fas fa-award"></i>Estágio: Liebherr</div>
+          <div class="credential"><i class="fas fa-users"></i>IA | Visão Computacional</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA FINAL -->
+<section class="cta-final" id="garantir">
+  <div class="section-inner reveal">
+    <div class="section-label">Oferta Especial de Lançamento</div>
+    <h2 class="section-title" style="max-width:600px">Transforme sua postura.<br>Transforme sua vida.</h2>
+    <p class="section-subtitle" style="max-width:500px">Acesso vitalício ao Postur AI com todas as atualizações futuras incluídas.</p>
+    <div class="cta-price">R$ 97</div>
+    <div class="cta-price-note">Pagamento único · Sem mensalidades · Acesso vitalício</div>
+    <div class="cta-features">
+      <div class="cta-feature"><i class="fas fa-check-circle"></i> Análise em tempo real</div>
+      <div class="cta-feature"><i class="fas fa-check-circle"></i> Relatórios semanais</div>
+      <div class="cta-feature"><i class="fas fa-check-circle"></i> Suporte prioritário</div>
+      <div class="cta-feature"><i class="fas fa-check-circle"></i> Atualizações grátis</div>
+    </div>
+    <button class="btn-large" id="ctaBtn"><i class="fas fa-bolt"></i>  Garantir meu acesso agora</button>
+    <div class="guarantee"><i class="fas fa-shield-alt"></i> Garantia de 7 dias ou seu dinheiro de volta</div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <p>© 2026 Postur AI. Todos os direitos reservados. Feito com <i class="fas fa-heart" style="color:var(--red)"></i> para sua saúde.</p>
+</footer>
+
+<script>
+  // ===== NAVBAR SCROLL =====
+  const nav = document.getElementById('navbar');
+  window.addEventListener('scroll', () => {
+    nav.classList.toggle('scrolled', window.scrollY > 20);
+  });
+
+  // ===== HAMBURGER =====
+  const hamburger = document.getElementById('hamburger');
+  const navLinks = document.getElementById('navLinks');
+  hamburger.addEventListener('click', () => {
+    navLinks.classList.toggle('open');
+    const icon = hamburger.querySelector('i');
+    icon.classList.toggle('fa-bars');
+    icon.classList.toggle('fa-times');
+  });
+  navLinks.querySelectorAll('a').forEach(a => {
+    a.addEventListener('click', () => {
+      navLinks.classList.remove('open');
+      const icon = hamburger.querySelector('i');
+      icon.classList.add('fa-bars');
+      icon.classList.remove('fa-times');
+    });
+  });
+
+  // ===== GENERATE SPINE =====
+  const spineVisual = document.getElementById('spineVisual');
+  const vertebrae = [];
+  for (let i = 0; i < 14; i++) {
+    const v = document.createElement('div');
+    v.className = 'vertebra';
+    const offset = Math.sin((i / 13) * Math.PI * 1.5) * 15;
+    v.style.transform = `translateX(${offset}px)`;
+    v.style.width = `${40 + Math.sin((i / 13) * Math.PI) * 25}px`;
+    v.style.opacity = 0.7 + (i / 13) * 0.3;
+    spineVisual.appendChild(v);
+    vertebrae.push({ el: v, originalOffset: offset });
+  }
+
+  // ===== 3D PARALLAX ON HERO =====
+  const hero3d = document.getElementById('hero3d');
+  let mouseX = 0, mouseY = 0, currentX = 0, currentY = 0;
+
+  document.addEventListener('mousemove', (e) => {
+    mouseX = (e.clientX / window.innerWidth - 0.5) * 20;
+    mouseY = (e.clientY / window.innerHeight - 0.5) * 15;
+  });
+
+  function animate3D() {
+    currentX += (mouseX - currentX) * 0.06;
+    currentY += (mouseY - currentY) * 0.06;
+    hero3d.style.transform = `rotateY(${currentX}deg) rotateX(${-currentY}deg)`;
+    requestAnimationFrame(animate3D);
+  }
+  animate3D();
+
+  // ===== SCROLL-TRIGGERED SPINE CORRECTION =====
+  let corrected = false;
+  window.addEventListener('scroll', () => {
+    const scrollPercent = window.scrollY / (window.innerHeight * 0.6);
+    const correction = Math.min(scrollPercent, 1);
+
+    vertebrae.forEach((v, i) => {
+      const newOffset = v.originalOffset * (1 - correction);
+      v.el.style.transform = `translateX(${newOffset}px)`;
+      if (correction > 0.8) {
+        v.el.style.background = `linear-gradient(135deg, #30D158, #00C6FF)`;
+        v.el.style.boxShadow = `0 2px 10px rgba(48,209,88,0.3)`;
+      } else {
+        v.el.style.background = `linear-gradient(135deg, var(--accent), #00C6FF)`;
+        v.el.style.boxShadow = `0 2px 10px rgba(0,113,227,0.2)`;
+      }
+    });
+  });
+
+  // ===== REVEAL ON SCROLL =====
+  const reveals = document.querySelectorAll('.reveal');
+  const revealObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('active');
+      }
+    });
+  }, { threshold: 0.15, rootMargin: '0px 0px -50px 0px' });
+
+  reveals.forEach(el => revealObserver.observe(el));
+
+  // ===== CTA BUTTON RIPPLE =====
+  const ctaBtn = document.getElementById('ctaBtn');
+  ctaBtn.addEventListener('click', function(e) {
+    const ripple = document.createElement('span');
+    ripple.style.cssText = `
+      position:absolute; border-radius:50%; background:rgba(255,255,255,0.4);
+      width:100px; height:100px; transform:translate(-50%,-50%) scale(0);
+      animation: ripple 0.6s ease-out; pointer-events:none;
+      left:${e.offsetX}px; top:${e.offsetY}px;
+    `;
+    this.appendChild(ripple);
+    setTimeout(() => ripple.remove(), 600);
+  });
+
+  // Add ripple keyframe
+  const style = document.createElement('style');
+  style.textContent = `@keyframes ripple { to { transform: translate(-50%,-50%) scale(4); opacity: 0; } }`;
+  document.head.appendChild(style);
+
+  // ===== COUNTER ANIMATION =====
+  const stats = document.querySelectorAll('.problem-stat');
+  const statObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting && !entry.target.dataset.animated) {
+        entry.target.dataset.animated = 'true';
+        const text = entry.target.textContent;
+        const num = parseFloat(text.replace(/[^0-9.]/g, ''));
+        const prefix = text.match(/^[^0-9]*/)[0];
+        const suffix = text.match(/[^0-9.]*$/)[0];
+        let current = 0;
+        const step = num / 40;
+        const interval = setInterval(() => {
+          current += step;
+          if (current >= num) { current = num; clearInterval(interval); }
+          const display = num % 1 !== 0 ? current.toFixed(1) : Math.round(current);
+          entry.target.textContent = prefix + display + suffix;
+        }, 30);
+      }
+    });
+  }, { threshold: 0.5 });
+  stats.forEach(s => statObserver.observe(s));
+</script>
+</body>
+</html>
